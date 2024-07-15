@@ -1,5 +1,5 @@
 - name: Obtener direcciones MAC de los nodos
-  hosts: all  
+  hosts: "{{ nodos }}" 
   become: yes
 
   tasks:
