@@ -1,0 +1,49 @@
+- name: Aumentar la memoria swap Linux
+  hosts: "{{ nodos }}"
+  become: yes
+  vars: 
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+  tasks:
+
+    - name: Verificar si el archivo de intercambio está activo
+      shell: grep -q '/swapfile' /proc/swaps
+      register: swapfile_status
+      ignore_errors: true
+
+    - name: Desactivar swap solo si está activo
+      command: swapoff /swapfile
+      become: yes
+      when: swapfile_status.rc == 0
+
+    - name: Crear un archivo de intercambio si no existe
+      command: fallocate -l 2G /swapfile
+      args:
+        creates: /swapfile
+
+    - name: Establecer permisos del archivo de intercambio
+      command: chmod 600 /swapfile
+
+    - name: Formatear el archivo de intercambio
+      command: mkswap /swapfile
+
+    - name: Activar el archivo de intercambio
+      command: swapon /swapfile
+
+    - name: Configurar el archivo de intercambio para que se cargue al inicio
+      lineinfile:
+        path: /etc/fstab
+        line: '/swapfile none swap sw 0 0'
+        state: present
+
+    - name: Ajustar la configuración de la memoria swappiness
+      sysctl:
+        name: vm.swappiness
+        value: 10
+        state: present
+
+    - name: Ajustar la configuración de la caché de la memoria
+      sysctl:
+        name: vm.vfs_cache_pressure
+        value: 50
+        state: present

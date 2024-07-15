@@ -1,0 +1,21 @@
+- name: Encender hosts con WoL
+  hosts: "{{ nodos }}"
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Verificar conectividad con el host
+      ping:
+      register: ping_result
+
+    - name: Enviar Magic Packet solo si el host está apagado
+      command: "python3 -c \"import socket, binascii; mac_address='{{ mac_address }}'; ip_address='{{ inventory_hostname }}'; mac_hex=mac_address.replace(':', '').re>      when: "'unreachable' in ping_result or 'FAILED' in ping_result"
+
+    - name: Esperar un tiempo antes de verificar si los hosts están encendidos
+      pause:
+        seconds: 10
+
+  handlers:
+    - name: Esperar un tiempo antes de verificar si los hosts están encendidos
+      pause:
+        seconds: 10

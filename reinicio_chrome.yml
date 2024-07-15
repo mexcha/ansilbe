@@ -1,0 +1,25 @@
+- name: Reiniciar nodos y gestionar Chrome
+  hosts: "{{ nodos }}"
+
+  become: yes
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+  tasks:
+    - name: Reiniciar nodos
+      shell: reboot
+      async: 300  # Se establece una espera de 300 segundos ( 5 minutos) ""
+      poll: 0
+
+    - name: Esperar a que los nodos se reinicien
+      wait_for_connection:
+        timeout: 300
+        delay: 30
+
+    - name: Cerrar Chrome
+      become_user: cha
+      shell: pkill chrome
+
+    - name: Iniciar Chrome después de reiniciar
+      become_user: cha
+      shell: google-chrome

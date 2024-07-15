@@ -1,0 +1,29 @@
+- name: Instalacion antivirus 
+  hosts: "{{ nodos }}"
+  become: yes  # Usar privilegio de root (sudo)tasks:
+
+  tasks:
+    - name: Descargar SophosSetup.sh
+      command: wget https://api-cloudstation-us-east-2.prod.hydra.sophos.com/api/download/8f98216e08de31a5f80b0ff23f3b625e/SophosSetup.sh
+      become: yes
+      args:
+        chdir: /tmp  # Descargar el script en /tmp
+
+    - name: Dar permisos de ejecución al script
+      command: chmod +x SophosSetup.sh
+      become: yes
+      args:
+        chdir: /tmp  # Asegurarse de que estamos en el directorio correcto
+
+    - name: Ejecutar SophosSetup.sh
+      command: ./SophosSetup.sh
+      become: yes
+      args:
+        chdir: /tmp  # Asegurarse de que estamos en el directorio correcto
+
+    - name: Verificar el estado de sophos-spl
+      systemd:
+        name: sophos-spl
+        state: started
+        enabled: yes
+      become: yes

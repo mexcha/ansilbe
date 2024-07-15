@@ -1,0 +1,29 @@
+- name: Actualizar todos los nodos en Lubuntu
+  hosts: "{{ nodos }}"
+  become: yes
+
+  tasks:
+    - name: Actualizar los paquetes del sistema
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 3600  # Configura el tiempo de validez de la caché para 1 hora (en segundos)
+
+    - name: Verificar y corregir dpkg
+      shell: dpkg --configure -a
+      ignore_errors: yes  # Ignorar errores si dpkg --configure -a no es necesario
+
+    - name: Actualizar apt si se necesita
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 3600
+      when: "'E: dpkg was interrupted' in apt_update.stdout"  # Ejecutar la actualización si dpkg fue interrumpido anteriormente
+
+
+#    - name: Reiniciar el sistema si es necesario
+#      command: shutdown -r now
+#      async: 0
+#      poll: 0
+#      become: yes
+#      when: reboot_required.rc == 1

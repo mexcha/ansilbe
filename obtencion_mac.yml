@@ -1,0 +1,13 @@
+---
+- name: Obtener direcciones MAC de los nodos
+  hosts: "{{ nodos }}"
+  become: yes
+
+  tasks:
+    - name: Obtener información de las interfaces de red
+      setup:
+        gather_subset: network
+
+    - name: Mostrar direcciones MAC
+      debug:
+        msg: "La dirección MAC de {{ ansible_default_ipv4.interface }} es {{ ansible_default_ipv4.macaddress }}"
